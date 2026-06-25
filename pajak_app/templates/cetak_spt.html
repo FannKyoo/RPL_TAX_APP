@@ -1,0 +1,78 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        /* Pengaturan ukuran kertas dan margin agar tidak terpotong */
+        @page {
+            size: a4 portrait;
+            margin: 2cm;
+        }
+        
+        body { font-family: Helvetica, Arial, sans-serif; font-size: 12px; color: #333; }
+        .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+        .title { font-size: 16px; font-weight: bold; margin-bottom: 5px; } /* Ukuran disesuaikan sedikit */
+        .subtitle { font-size: 14px; font-weight: bold; color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 8px; border-bottom: 1px solid #ddd; text-align: left; }
+        th { width: 40%; background-color: #f2f2f2; }
+        .footer { margin-top: 50px; text-align: right; }
+        .badge { color: white; padding: 5px 10px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="title">KEMENTERIAN KEUANGAN REPUBLIK INDONESIA</div>
+        <div class="subtitle">DIREKTORAT JENDERAL PAJAK</div>
+        <div style="margin-top: 10px; font-size: 16px; font-weight: bold;">BUKTI PENERIMAAN ELEKTRONIK (BPE)</div>
+    </div>
+
+    <p>Tanda terima ini adalah bukti sah bahwa Wajib Pajak telah menyampaikan Surat Pemberitahuan (SPT) Tahunan secara elektronik.</p>
+
+    <table>
+        <tr>
+            <th>Nomor Tanda Terima</th>
+            <td><strong>{{ spt.no_lapor }}</strong></td>
+        </tr>
+        <tr>
+            <th>Tanggal Lapor</th>
+            <td>{{ spt.tgl_lapor|date:"d F Y H:i" }} WIB</td>
+        </tr>
+        <tr>
+            <th>Nama Wajib Pajak</th>
+            <td>{{ spt.npwp.nama }}</td>
+        </tr>
+        <tr>
+            <th>NPWP</th>
+            <td>{{ spt.npwp.npwp }}</td>
+        </tr>
+        <tr>
+            <th>Tahun Pajak</th>
+            <td>{{ spt.tahun }}</td>
+        </tr>
+        <tr>
+            <th>Penghasilan Bruto</th>
+            <td>Rp {{ spt.bruto|floatformat:"0"|intcomma }}</td>
+        </tr>
+        <tr>
+            <th>Pajak Terutang</th>
+            <td>Rp {{ spt.terutang|floatformat:"0"|intcomma }}</td>
+        </tr>
+        <tr>
+            <th>Kredit Pajak</th>
+            <td>Rp {{ spt.kredit_pajak|floatformat:"0"|intcomma }}</td>
+        </tr>
+        <tr>
+            <th>Status Ketetapan</th>
+            <td><strong style="color: blue;">{{ spt.status }}</strong></td>
+        </tr>
+    </table>
+
+    <div class="footer">
+        <p>Dicetak pada: {% now "d F Y" %}</p>
+        <p><strong>Sistem Informasi Pelayanan Pajak</strong></p>
+    </div>
+
+</body>
+</html>

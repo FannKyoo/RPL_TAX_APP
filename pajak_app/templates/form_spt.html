@@ -1,0 +1,249 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Filing Pajak | Form SPT</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            background-color: #f4f7f6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar-elegant {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        }
+        .card-elegant {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+        .card-header-elegant {
+            background-color: #fff;
+            border-bottom: 2px solid #f0f0f0;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 20px 30px;
+        }
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 12px 15px;
+            border: 1px solid #ced4da;
+        }
+        .form-control:focus, .form-select:focus {
+            box-shadow: 0 0 0 0.25rem rgba(42, 82, 152, 0.25);
+            border-color: #2a5298;
+        }
+        .btn-elegant {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-elegant:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(42, 82, 152, 0.4);
+            color: white;
+        }
+        .input-group-text {
+            background-color: #f8f9fa;
+            border-radius: 8px 0 0 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-elegant shadow-sm mb-5">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="{% url 'form_spt' %}">
+                <i class="fa-solid fa-building-columns me-2"></i> E-Filing Pajak
+            </a>
+            
+            <div class="d-flex text-white align-items-center">
+                <!-- TOMBOL MASUK KE ADMIN -->
+                <a href="/admin/" target="_blank" class="btn btn-outline-light btn-sm me-4" style="border-radius: 20px;">
+                    <i class="fa-solid fa-user-tie me-1"></i> Panel Admin
+                </a>
+
+                <!-- LOGIKA TAMPILAN LOGIN / LOGOUT -->
+                {% if request.session.npwp %}
+                    <span class="me-3">Halo, <strong>{{ request.session.nama }}</strong></span>
+                    <a href="{% url 'logout_view' %}" class="btn btn-danger btn-sm rounded-pill"><i class="fa-solid fa-right-from-bracket"></i> Keluar</a>
+                {% else %}
+                    <a href="{% url 'login_view' %}" class="text-white text-decoration-none">
+                        <i class="fa-solid fa-circle-user fs-4 me-1 align-middle"></i> Wajib Pajak (Login)
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container pb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card card-elegant">
+                    <div class="card-header-elegant text-center">
+                        <h4 class="fw-bold mb-0" style="color: #1e3c72;">Pelaporan SPT Tahunan</h4>
+                        <p class="text-muted mb-0 mt-1">
+                            <!-- LOGIKA PENENTUAN JUDUL FORMULIR DINAMIS -->
+                            {% if jenis_formulir %}
+                                {{ jenis_formulir }}
+                            {% else %}
+                                Formulir 1770 SS / 1770 S
+                            {% endif %} 
+                            - Wajib Pajak Orang Pribadi
+                        </p>
+                    </div>
+                    <div class="card-body p-4 p-md-5">
+                        
+                        <form action="" method="POST">
+                            {% csrf_token %} 
+                            
+                            {% if berhasil %}
+                            <div class="alert alert-success shadow-sm rounded-3 mb-4">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="fw-bold mb-2"><i class="fa-solid fa-circle-check me-2"></i>Laporan Berhasil Disimpan!</h5>
+                                        <!-- Typo huruf kecil "bruto" sudah diubah jadi kapital -->
+                                        <p>Bruto dalam setahun: <strong>Rp {{ bruto|floatformat:"g" }}</strong></p>
+                                        <p>Pajak Terutang: <strong>Rp {{ terutang|floatformat:"g" }}</strong></p>
+                                        <p>Kredit Pajak: <strong>Rp {{ kredit_pajak|floatformat:"g" }}</strong></p>
+                                        <h6 class="mb-0 mt-2">Status Ketetapan: <span class="badge bg-primary fs-6">{{ status }}</span></h6>
+                                    </div>
+                                    <!-- INI TOMBOL CETAK PDF-NYA -->
+                                    <div>
+                                        <a href="{% url 'cetak_pdf' no_lapor %}" target="_blank" class="btn btn-danger">
+                                            <i class="fa-solid fa-file-pdf me-1"></i> Cetak Tanda Terima
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                          <h6 class="fw-bold text-muted mb-3"><i class="fa-solid fa-address-card me-2"></i>Data Wajib Pajak</h6>
+                            <div class="row mb-4">
+                               <div class="col-md-4 mb-3">
+                                    <label class="form-label">NPWP</label>
+                                    <input type="text" name="npwp" class="form-control {% if request.session.npwp %}bg-light{% endif %}" value="{{ request.session.npwp }}" placeholder="Masukkan NPWP" {% if request.session.npwp %}readonly{% endif %} required>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Nama Lengkap</label>
+                                    <input type="text" name="nama" class="form-control {% if request.session.nama %}bg-light{% endif %}" value="{{ request.session.nama }}" placeholder="Masukkan Nama Lengkap" {% if request.session.nama %}readonly{% endif %} required>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Tahun Pajak</label>
+                                    <select class="form-select" name="tahun">
+                                        <option value="2025">2025</option>
+                                        <option value="2026" selected>2026</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <hr class="mb-4">
+
+                            <!-- Penghasilan -->
+                            <h6 class="fw-bold text-muted mb-3"><i class="fa-solid fa-money-bill-wave me-2"></i>Penghasilan & Potongan</h6>
+                            <div class="mb-3">
+                                <label class="form-label">Penghasilan Bruto (Setahun)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">Rp</span>
+                                    <input type="number" name="bruto" class="form-control" placeholder="Contoh: 120000000" required>
+                                </div>
+                                <div class="form-text">Total penghasilan kotor Anda dalam satu tahun terakhir.</div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label">Kredit Pajak (Pajak yang sudah dipotong pihak lain)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">Rp</span>
+                                    <input type="number" name="kredit_pajak" class="form-control" placeholder="Contoh: 5000000" required>
+                                </div>
+                            </div>
+
+                            <!-- Tombol Aksi -->
+                            <div class="d-grid mt-5">
+                                <button type="submit" class="btn btn-elegant btn-lg">
+                                    <i class="fa-solid fa-calculator me-2"></i> Hitung Pajak & Simpan
+                                </button>
+                            </div>
+                        </form>
+                        <!-- BATAS AKHIR FORM -->
+
+                    </div> <!-- Penutup card-body -->
+                </div> <!-- Penutup card form -->
+
+                <!-- ======================================================= -->
+                <!-- TABEL RIWAYAT PELAPORAN -->
+                <!-- ======================================================= -->
+                {% if request.session.npwp %}
+                <div class="card card-elegant mt-4 mb-5">
+                    <div class="card-header-elegant d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0" style="color: #1e3c72;"><i class="fa-solid fa-clock-rotate-left me-2"></i>Riwayat Pelaporan</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">No. Tanda Terima</th>
+                                        <th>Tahun</th>
+                                        <th>Tanggal Lapor</th>
+                                        <th>Status</th>
+                                        <th class="text-center pe-4">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for spt in riwayat %}
+                                    <tr>
+                                        <td class="ps-4"><strong>{{ spt.no_lapor }}</strong></td>
+                                        <td>{{ spt.tahun }}</td>
+                                        <td>{{ spt.tgl_lapor|date:"d M Y" }}</td>
+                                        <td>
+                                            {% if spt.status == 'Nihil' %}
+                                                <span class="badge bg-success">Nihil</span>
+                                            {% elif spt.status == 'Kurang Bayar' %}
+                                                <span class="badge bg-warning text-dark">Kurang Bayar</span>
+                                            {% else %}
+                                                <span class="badge bg-primary">Lebih Bayar</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center pe-4">
+                                            <a href="{% url 'cetak_pdf' spt.no_lapor %}" target="_blank" class="btn btn-sm btn-outline-danger" style="border-radius: 8px;">
+                                                <i class="fa-solid fa-file-pdf"></i> Cetak
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4">
+                                            <i class="fa-solid fa-folder-open fs-1 mb-2 text-light"></i><br>
+                                            Belum ada riwayat pelaporan.
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                <!-- ======================================================= -->
+
+            </div> <!-- Penutup col-lg-8 -->
+        </div> <!-- Penutup row -->
+    </div> <!-- Penutup container -->
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
